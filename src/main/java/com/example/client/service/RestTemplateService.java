@@ -1,7 +1,9 @@
 package com.example.client.service;
 
+import com.example.client.dto.Req;
 import com.example.client.dto.UserRequest;
 import com.example.client.dto.UserResponse;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -76,18 +78,18 @@ public class RestTemplateService {
 
     //header 추가
     public UserResponse exchange(){
-        //http://localhost/api/server/hello/user/{userId}/name/{userName}
+        //http://localhost/api/server/hello/user
         URI uri = UriComponentsBuilder
                 .fromUriString("http://localhost:9090")
-                .path("/api/server/user/{userId}/name/{userName}")
+                .path("/api/server/exchange")
                 .encode()
                 .build()
-                .expand(100,"steve")
                 .toUri();
+
         UserRequest req = new UserRequest();
         req.setName("steve");
         req.setAge(10);
-
+        //서버가 헤더를 요구할때 requestEntity를 만들어서 보내면 된다.
         RequestEntity<UserRequest> requestEntity = RequestEntity
                 .post(uri) //Post형식
                 .contentType(MediaType.APPLICATION_JSON) //컨텐츠 타입 지정
@@ -95,10 +97,40 @@ public class RestTemplateService {
                 .header("custom-header","fffff")//header는 계속 추가할수있다.
                 .body(req);//requestBody에 들어갈 Body내용
 
-
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<UserResponse> response = restTemplate.exchange(requestEntity,UserResponse.class);
         return response.getBody();
     }
 
+    public Req<UserResponse> genericExchange(){
+        URI uri = UriComponentsBuilder
+                .fromUriString("http://localhost:9090")
+                .path("/api/server/genericExchange")
+                .encode()
+                .build()
+                .toUri();
+        UserRequest userRequest = new UserRequest();
+        userRequest.setName("steve");
+        userRequest.setAge(10);
+        Req<UserRequest> req = new Req<UserRequest>();
+        req.setHeader(
+                new Req.Header()
+        );
+        req.setResBody(
+                userRequest
+        );
+        RequestEntity<Req<UserRequest>> requestEntity = RequestEntity
+                .post(uri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("x-authorization","abcd")
+                .header("custom-header","fffff")//header는 계속 추가할수있다.
+                .body(req);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Req<UserResponse>> response =
+                //restTemplate.exchange(requestEntity,Req<UserResponse>.class);
+                //불가능 Generic에 class붙히는게 불가능해서
+                restTemplate.exchange(requestEntity,new ParameterizedTypeReference<Req<UserResponse>>(){});
+        return response.getBody();
+    }
 }

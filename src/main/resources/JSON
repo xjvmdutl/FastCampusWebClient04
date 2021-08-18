@@ -1,0 +1,10 @@
+{
+   "header" :{
+        "response_code" : "OK"
+   },"body" : {
+         //Body내용만 바뀐다.
+        "book" : "spring boot" ,
+        "page" : 1024
+   }
+
+}
